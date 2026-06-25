@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PrepPlanner</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --bg2: #161b27;
+    --bg3: #1e2535;
+    --bg4: #242c3d;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #e8eaf0;
+    --text2: #8b91a8;
+    --text3: #5a6075;
+    --accent: #6366f1;
+    --accent2: #818cf8;
+    --accent-bg: rgba(99,102,241,0.12);
+    --green: #22c55e;
+    --green-bg: rgba(34,197,94,0.1);
+    --amber: #f59e0b;
+    --amber-bg: rgba(245,158,11,0.1);
+    --red: #ef4444;
+    --red-bg: rgba(239,68,68,0.1);
+    --teal: #14b8a6;
+    --teal-bg: rgba(20,184,166,0.1);
+    --purple: #a855f7;
+    --purple-bg: rgba(168,85,247,0.1);
+    --radius: 10px;
+    --radius-lg: 14px;
+    --font: 'Inter', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; min-height: 100vh; }
+
+  /* Layout */
+  .app { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+  .sidebar { background: var(--bg2); border-right: 1px solid var(--border); padding: 20px 12px; display: flex; flex-direction: column; gap: 4px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+  .main { padding: 24px; overflow-y: auto; }
+
+  /* Sidebar */
+  .logo { font-size: 16px; font-weight: 700; color: var(--accent2); padding: 8px 10px 18px; letter-spacing: -0.3px; }
+  .nav-item { display: flex; align-items: center; gap: 9px; padding: 9px 10px; border-radius: var(--radius); cursor: pointer; color: var(--text2); font-size: 13px; font-weight: 500; transition: all .15s; border: none; background: none; width: 100%; text-align: left; }
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+  .nav-item.active { background: var(--accent-bg); color: var(--accent2); }
+  .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .nav-section { font-size: 10px; font-weight: 600; color: var(--text3); letter-spacing: .8px; text-transform: uppercase; padding: 14px 10px 6px; }
+
+  /* Timer pill in sidebar */
+  .timer-pill { margin-top: auto; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; }
+  .timer-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 6px; }
+  .timer-display { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent2); letter-spacing: -1px; }
+  .timer-btn { margin-top: 8px; width: 100%; padding: 7px; border-radius: 7px; border: 1px solid var(--border2); background: none; color: var(--text2); font-size: 12px; cursor: pointer; transition: all .15s; }
+  .timer-btn:hover { background: var(--bg4); color: var(--text); }
+  .timer-btn.running { border-color: var(--green); color: var(--green); }
+
+  /* Page header */
+  .page-header { margin-bottom: 24px; }
+  .page-title { font-size: 20px; font-weight: 700; letter-spacing: -0.4px; }
+  .page-sub { color: var(--text2); font-size: 13px; margin-top: 3px; }
+
+  /* Cards */
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px; }
+  .card-title { font-size: 12px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 14px; }
+
+  /* Stat grid */
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; }
+  .stat-val { font-size: 26px; font-weight: 700; letter-spacing: -1px; margin-bottom: 3px; }
+  .stat-lbl { font-size: 11px; color: var(--text2); }
+
+  /* Badge */
+  .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px; }
+  .badge.green { background: var(--green-bg); color: var(--green); }
+  .badge.amber { background: var(--amber-bg); color: var(--amber); }
+  .badge.red { background: var(--red-bg); color: var(--red); }
+  .badge.purple { background: var(--purple-bg); color: var(--purple); }
+  .badge.teal { background: var(--teal-bg); color: var(--teal); }
+  .badge.gray { background: var(--bg3); color: var(--text2); }
+  .badge.accent { background: var(--accent-bg); color: var(--accent2); }
+
+  /* Buttons */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--radius); border: 1px solid var(--border2); background: none; color: var(--text); font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s; }
+  .btn:hover { background: var(--bg3); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover { background: #5254cc; }
+  .btn.sm { padding: 5px 11px; font-size: 12px; }
+  .btn.icon { padding: 7px; }
+  .btn svg { width: 14px; height: 14px; }
+
+  /* Input */
+  input, select, textarea { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-size: 13px; padding: 9px 12px; font-family: var(--font); outline: none; transition: border .15s; }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  input[type="date"] { color-scheme: dark; }
+  label { font-size: 12px; color: var(--text2); display: block; margin-bottom: 5px; }
+
+  /* Sections */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* Upload zone */
+  .upload-zone { border: 2px dashed var(--border2); border-radius: var(--radius-lg); padding: 40px; text-align: center; cursor: pointer; transition: all .2s; }
+  .upload-zone:hover, .upload-zone.drag { border-color: var(--accent); background: var(--accent-bg); }
+  .upload-icon { font-size: 32px; margin-bottom: 10px; }
+  .upload-title { font-weight: 600; margin-bottom: 5px; }
+  .upload-sub { color: var(--text2); font-size: 12px; }
+
+  /* Progress bar */
+  .prog-wrap { background: var(--bg3); border-radius: 999px; height: 6px; overflow: hidden; }
+  .prog-fill { height: 100%; border-radius: 999px; transition: width .4s; }
+
+  /* Topic list */
+  .topic-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--bg2); margin-bottom: 6px; }
+  .topic-name { flex: 1; font-size: 13px; font-weight: 500; }
+  .topic-sub { font-size: 11px; color: var(--text2); margin-top: 1px; }
+  .level-dots { display: flex; gap: 4px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--border2); cursor: pointer; transition: all .15s; }
+  .dot.done { border-color: transparent; }
+  .dot[data-level="0"].done { background: var(--teal); }
+  .dot[data-level="1"].done { background: var(--amber); }
+  .dot[data-level="2"].done { background: var(--purple); }
+
+  /* Revision alerts */
+  .alert-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: var(--radius); border: 1px solid; margin-bottom: 8px; }
+  .alert-row.due { border-color: rgba(245,158,11,.3); background: var(--amber-bg); }
+  .alert-row.overdue { border-color: rgba(239,68,68,.3); background: var(--red-bg); }
+  .alert-row.upcoming { border-color: var(--border); background: var(--bg2); }
+  .alert-icon { font-size: 18px; flex-shrink: 0; }
+  .alert-info { flex: 1; }
+  .alert-topic { font-weight: 600; font-size: 13px; }
+  .alert-meta { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+  /* Schedule table */
+  .day-row { display: grid; grid-template-columns: 80px 1fr auto; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); }
+  .day-label { font-size: 12px; color: var(--text2); }
+  .day-topics { font-size: 13px; }
+  .day-load { font-size: 11px; color: var(--text2); }
+
+  /* Setup wizard */
+  .wizard-step { display: none; }
+  .wizard-step.active { display: block; }
+  .wizard-nav { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; }
+  .wstep { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--text3); }
+  .wstep.active { border-color: var(--accent); color: var(--accent2); }
+  .wstep.done { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .wstep-line { flex: 1; height: 1px; background: var(--border); }
+
+  /* Spinner */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner { width: 20px; height: 20px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+
+  /* Loading overlay */
+  .loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; z-index: 100; }
+  .loading-text { color: var(--text2); font-size: 14px; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  /* Responsive */
+  @media(max-width:768px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .stat-grid { grid-template-columns: repeat(2,1fr); }
+  }
+
+  /* Flashy exam badge colors */
+  .exam-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 6px; }
+
+  /* Tooltip */
+  [title] { cursor: help; }
+
+  /* Daily topics done toggle */
+  .done-toggle { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border2); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .15s; background: none; }
+  .done-toggle.checked { background: var(--green); border-color: var(--green); }
+  .done-toggle svg { width: 10px; height: 10px; display: none; }
+  .done-toggle.checked svg { display: block; }
+
+  /* Study session log */
+  .session-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .session-row:last-child { border-bottom: none; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+  .tag { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; text-transform: uppercase; letter-spacing: .4px; }
+  .tag.read { background: var(--teal-bg); color: var(--teal); }
+  .tag.rev1 { background: var(--amber-bg); color: var(--amber); }
+  .tag.rev2 { background: var(--purple-bg); color: var(--purple); }
+
+  .empty-state { text-align: center; padding: 48px 24px; color: var(--text2); }
+  .empty-icon { font-size: 36px; margin-bottom: 12px; }
+  .empty-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .empty-sub { font-size: 13px; }
+
+  /* Notification dot */
+  .notif-dot { width: 7px; height: 7px; background: var(--red); border-radius: 50%; margin-left: auto; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">📚 PrepPlanner</div>
+
+    <button class="nav-item active" onclick="showSection('dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </button>
+    <button class="nav-item" onclick="showSection('schedule')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
+      Daily Schedule
+    </button>
+    <button class="nav-item" onclick="showSection('topics')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+      Topics
+    </button>
+    <button class="nav-item" onclick="showSection('revisions')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.07-8.77"/></svg>
+      Revisions
+      <span id="rev-dot" class="notif-dot" style="display:none"></span>
+    </button>
+    <button class="nav-item" onclick="showSection('setup')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 0 0 4.93 19.07M4.93 4.93a10 10 0 0 0 14.14 14.14"/></svg>
+      Setup / Upload
+    </button>
+
+    <div class="nav-section">Stats</div>
+    <button class="nav-item" onclick="showSection('sessions')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Study Log
+    </button>
+
+    <div class="timer-pill">
+      <div class="timer-label">Today's study time</div>
+      <div class="timer-display" id="timer-display">00:00:00</div>
+      <button class="timer-btn" id="timer-btn" onclick="toggleTimer()">▶ Start session</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <div class="section active" id="sec-dashboard">
+      <div class="page-header">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div class="page-title" id="dash-greeting">Good morning! 👋</div>
+            <div class="page-sub" id="dash-sub">Let's make today count.</div>
+          </div>
+          <div id="exam-badges" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+        </div>
+      </div>
+
+      <div class="stat-grid" id="stat-grid">
+        <div class="stat-card"><div class="stat-val" id="stat-days" style="color:var(--accent2)">—</div><div class="stat-lbl">Days to exam</div></div>
+        <div class="stat-card"><div class="stat-val" id="stat-done" style="color:var(--green)">0%</div><div class="stat-lbl">Syllabus done</div></div>
+        <div class="stat-card"><div class="stat-val" id="stat-today" style="color:var(--amber)">0</div><div class="stat-lbl">Topics due today</div></div>
+        <div class="stat-card"><div class="stat-val" id="stat-streak" style="color:var(--purple)">0🔥</div><div class="stat-lbl">Day streak</div></div>
+      </div>
+
+      <!-- Progress per exam -->
+      <div id="exam-progress-cards" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px"></div>
+
+      <!-- Today's plan -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div class="card-title" style="margin-bottom:0">Today's Plan</div>
+          <div id="today-date" style="font-size:12px;color:var(--text2)"></div>
+        </div>
+        <div id="today-list"><div class="empty-state"><div class="empty-icon">🗓️</div><div class="empty-title">No schedule yet</div><div class="empty-sub">Upload your syllabus and set a target date to auto-generate your plan.</div><button class="btn primary" style="margin-top:16px" onclick="showSection('setup')">Set up now</button></div></div>
+      </div>
+
+      <!-- Due revisions on dashboard -->
+      <div style="margin-top:16px" id="dash-revisions-section" style="display:none">
+        <div class="card">
+          <div class="card-title">Revision Due Today</div>
+          <div id="dash-revision-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAILY SCHEDULE -->
+    <div class="section" id="sec-schedule">
+      <div class="page-header">
+        <div class="page-title">Daily Schedule</div>
+        <div class="page-sub">Your full syllabus spread across study days</div>
+      </div>
+      <div class="card">
+        <div id="schedule-list"><div class="empty-state"><div class="empty-icon">📅</div><div class="empty-title">No schedule generated</div><div class="empty-sub">Complete setup to generate your day-by-day plan.</div></div></div>
+      </div>
+    </div>
+
+    <!-- TOPICS -->
+    <div class="section" id="sec-topics">
+      <div class="page-header">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div class="page-title">All Topics</div>
+            <div class="page-sub">Track read → revision 1 → revision 2</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <select id="filter-exam" onchange="renderTopics()" style="font-size:12px;padding:6px 10px"><option value="">All exams</option></select>
+            <select id="filter-status" onchange="renderTopics()" style="font-size:12px;padding:6px 10px">
+              <option value="">All status</option>
+              <option value="0">Not started</option>
+              <option value="1">First read done</option>
+              <option value="2">Rev 1 done</option>
+              <option value="3">Fully revised</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div id="topic-list-container"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">No topics loaded</div><div class="empty-sub">Upload your syllabus PDF in Setup to populate this list.</div></div></div>
+    </div>
+
+    <!-- REVISIONS -->
+    <div class="section" id="sec-revisions">
+      <div class="page-header">
+        <div class="page-title">Revision Schedule</div>
+        <div class="page-sub">Spaced repetition: 24 hr → 3 days → 7 days after first read</div>
+      </div>
+      <div id="rev-overdue-section" style="margin-bottom:16px;display:none">
+        <div style="font-size:12px;font-weight:600;color:var(--red);margin-bottom:8px;text-transform:uppercase;letter-spacing:.6px">⚠ Overdue</div>
+        <div id="rev-overdue-list"></div>
+      </div>
+      <div id="rev-today-section" style="margin-bottom:16px;display:none">
+        <div style="font-size:12px;font-weight:600;color:var(--amber);margin-bottom:8px;text-transform:uppercase;letter-spacing:.6px">📌 Due Today</div>
+        <div id="rev-today-list"></div>
+      </div>
+      <div id="rev-upcoming-section">
+        <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.6px">🔜 Upcoming</div>
+        <div id="rev-upcoming-list"><div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">All clear!</div><div class="empty-sub">No upcoming revisions. Mark topics as read to schedule revisions.</div></div></div>
+      </div>
+    </div>
+
+    <!-- STUDY LOG -->
+    <div class="section" id="sec-sessions">
+      <div class="page-header">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div class="page-title">Study Log</div>
+            <div class="page-sub">Your productivity history</div>
+          </div>
+          <button class="btn sm" onclick="clearLog()">Clear log</button>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:16px">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+          <div><div style="font-size:22px;font-weight:700;color:var(--accent2)" id="log-total-time">0h 0m</div><div style="font-size:11px;color:var(--text2)">Total study time</div></div>
+          <div><div style="font-size:22px;font-weight:700;color:var(--green)" id="log-sessions">0</div><div style="font-size:11px;color:var(--text2)">Sessions logged</div></div>
+          <div><div style="font-size:22px;font-weight:700;color:var(--amber)" id="log-avg">0m</div><div style="font-size:11px;color:var(--text2)">Avg session</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Session History</div>
+        <div id="session-log-list"><div style="color:var(--text2);font-size:13px;padding:12px 0">No sessions logged yet. Start the timer to begin!</div></div>
+      </div>
+    </div>
+
+    <!-- SETUP -->
+    <div class="section" id="sec-setup">
+      <div class="page-header">
+        <div class="page-title">Setup</div>
+        <div class="page-sub">Configure your exams, target dates, and upload syllabus</div>
+      </div>
+
+      <!-- Wizard nav -->
+      <div class="wizard-nav">
+        <div class="wstep active" id="ws1">1</div>
+        <div class="wstep-line"></div>
+        <div class="wstep" id="ws2">2</div>
+        <div class="wstep-line"></div>
+        <div class="wstep" id="ws3">3</div>
+        <div class="wstep-line"></div>
+        <div class="wstep" id="ws4">4</div>
+      </div>
+
+      <!-- Step 1: Exam details -->
+      <div class="wizard-step active" id="wstep-1">
+        <div class="card">
+          <div class="card-title">Step 1 — Exam Details</div>
+          <div id="exam-list-setup" style="margin-bottom:16px"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
+            <div><label>Exam Name</label><input type="text" id="new-exam-name" placeholder="e.g. UGC NET Stats" style="width:100%"></div>
+            <div><label>Target Date</label><input type="date" id="new-exam-date" style="width:100%"></div>
+            <div><label>Study hours/day</label><input type="number" id="new-exam-hours" value="6" min="1" max="16" style="width:100%"></div>
+          </div>
+          <button class="btn primary" onclick="addExam()">+ Add Exam</button>
+          <div style="margin-top:16px">
+            <button class="btn" onclick="gotoStep(2)" style="margin-left:auto;display:block">Next: Upload Syllabus →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Manual Syllabus Entry -->
+      <div class="wizard-step" id="wstep-2">
+        <div class="card">
+          <div class="card-title">Step 2 — Add Syllabus Topics</div>
+
+          <!-- Exam selector -->
+          <div style="margin-bottom:16px">
+            <label>Select Exam to add topics to</label>
+            <select id="upload-exam-select" style="width:100%" onchange="renderManualTopicList()"></select>
+          </div>
+
+          <!-- Add topic form -->
+          <div style="background:var(--bg3);border-radius:var(--radius);padding:14px;margin-bottom:16px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+              <div>
+                <label>Unit / Section</label>
+                <input type="text" id="new-unit" placeholder="e.g. Unit 1: Probability" style="width:100%" list="unit-suggestions">
+                <datalist id="unit-suggestions"></datalist>
+              </div>
+              <div>
+                <label>Topic Name</label>
+                <input type="text" id="new-topic-name" placeholder="e.g. Conditional Probability" style="width:100%" onkeydown="if(event.key==='Enter')addTopicManual()">
+              </div>
+            </div>
+            <button class="btn primary" onclick="addTopicManual()">+ Add Topic</button>
+            <span id="add-topic-msg" style="font-size:12px;color:var(--green);margin-left:10px;display:none">✓ Added!</span>
+          </div>
+
+          <!-- Bulk paste -->
+          <div style="background:var(--bg3);border-radius:var(--radius);padding:14px;margin-bottom:16px">
+            <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px">⚡ Bulk Paste (fast method)</div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Paste topics — one per line. Prefix with "Unit Name:" to set unit. Example:<br><span style="color:var(--accent2)">Unit 1: Probability<br>Conditional probability<br>Bayes theorem</span></div>
+            <textarea id="bulk-paste" rows="6" placeholder="Paste your syllabus text here..." style="width:100%;resize:vertical;font-size:12px;font-family:monospace"></textarea>
+            <button class="btn" style="margin-top:8px" onclick="parseBulkPaste()">⚡ Parse & Add All</button>
+            <span id="bulk-msg" style="font-size:12px;color:var(--green);margin-left:10px;display:none"></span>
+          </div>
+
+          <!-- Live topic list for this exam -->
+          <div id="manual-topic-list" style="max-height:280px;overflow-y:auto"></div>
+
+          <div style="margin-top:16px;display:flex;gap:8px">
+            <button class="btn" onclick="gotoStep(1)">← Back</button>
+            <button class="btn primary" onclick="gotoStep(3)">Next: Review Topics →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Review topics -->
+      <div class="wizard-step" id="wstep-3">
+        <div class="card">
+          <div class="card-title">Step 3 — Review All Topics</div>
+          <div id="parsed-topics-preview" style="margin-bottom:14px;max-height:400px;overflow-y:auto"><div style="color:var(--text2);font-size:13px">No topics added yet. Go back to Step 2.</div></div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn" onclick="gotoStep(2)">← Back</button>
+            <button class="btn primary" onclick="gotoStep(4)">Next: Generate Schedule →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Generate schedule -->
+      <div class="wizard-step" id="wstep-4">
+        <div class="card">
+          <div class="card-title">Step 4 — Generate Daily Schedule</div>
+          <div id="schedule-preview" style="margin-bottom:14px;color:var(--text2);font-size:13px">Click generate to create your personalized study schedule.</div>
+          <div style="display:flex;gap:8px">
+            <button class="btn" onclick="gotoStep(3)">← Back</button>
+            <button class="btn primary" id="gen-btn" onclick="generateSchedule()">⚡ Generate Schedule</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loading-overlay" style="display:none">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">Analyzing syllabus with AI...</div>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let state = {
+  exams: [],        // [{id, name, date, hoursPerDay, color}]
+  topics: [],       // [{id, examId, examName, unit, name, scheduledDate, level:0/1/2, readDate, rev1Date, rev2Date, doneToday}]
+  schedule: [],     // [{date, topicIds}]
+  sessions: [],     // [{start, end, duration}]
+  todayStudied: 0,  // seconds
+  streak: 0,
+  lastStudyDate: null,
+};
+
+const EXAM_COLORS = ['#6366f1','#14b8a6','#f59e0b','#a855f7','#ef4444','#22c55e'];
+const LEVEL_LABELS = ['First Read','Revision 1','Revision 2'];
+const LEVEL_TAGS = ['read','rev1','rev2'];
+
+function save() { try { localStorage.setItem('pp2025', JSON.stringify(state)); } catch(e){} }
+function load() {
+  try {
+    const d = localStorage.getItem('pp2025');
+    if (d) state = { ...state, ...JSON.parse(d) };
+  } catch(e){}
+}
+
+// ─── TIMER ────────────────────────────────────────────────────────────────────
+let timerInterval = null;
+let timerRunning = false;
+let timerStart = null;
+let timerAccum = 0; // seconds accumulated today
+
+function toggleTimer() {
+  if (!timerRunning) {
+    timerRunning = true;
+    timerStart = Date.now();
+    timerInterval = setInterval(updateTimer, 1000);
+    document.getElementById('timer-btn').textContent = '⏸ Pause session';
+    document.getElementById('timer-btn').classList.add('running');
+  } else {
+    const elapsed = Math.floor((Date.now() - timerStart) / 1000);
+    timerAccum += elapsed;
+    timerRunning = false;
+    clearInterval(timerInterval);
+    document.getElementById('timer-btn').textContent = '▶ Resume session';
+    document.getElementById('timer-btn').classList.remove('running');
+    // Auto-log if > 60s
+    if (elapsed >= 60) {
+      const session = { start: new Date(timerStart).toISOString(), end: new Date().toISOString(), duration: elapsed };
+      state.sessions.push(session);
+      // Update streak
+      const today = new Date().toDateString();
+      if (state.lastStudyDate !== today) {
+        const yesterday = new Date(Date.now() - 86400000).toDateString();
+        state.streak = state.lastStudyDate === yesterday ? (state.streak||0) + 1 : 1;
+        state.lastStudyDate = today;
+      }
+      save();
+      updateSessionLog();
+    }
+  }
+}
+
+function updateTimer() {
+  const elapsed = timerAccum + Math.floor((Date.now() - timerStart) / 1000);
+  const h = Math.floor(elapsed / 3600);
+  const m = Math.floor((elapsed % 3600) / 60);
+  const s = elapsed % 60;
+  document.getElementById('timer-display').textContent =
+    String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+
+// ─── NAV ─────────────────────────────────────────────────────────────────────
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  event && event.currentTarget && event.currentTarget.classList.add('active');
+  // refresh relevant sections
+  if (id === 'dashboard') renderDashboard();
+  if (id === 'revisions') renderRevisions();
+  if (id === 'topics') renderTopics();
+  if (id === 'schedule') renderScheduleView();
+  if (id === 'sessions') updateSessionLog();
+}
+
+// ─── SETUP WIZARD ─────────────────────────────────────────────────────────────
+function gotoStep(n) {
+  document.querySelectorAll('.wizard-step').forEach(s => s.classList.remove('active'));
+  document.getElementById('wstep-'+n).classList.add('active');
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById('ws'+i);
+    el.classList.remove('active','done');
+    if (i < n) el.classList.add('done');
+    else if (i === n) el.classList.add('active');
+  }
+  if (n === 2) { populateExamSelect(); renderManualTopicList(); }
+  if (n === 3) renderParsedPreview();
+  if (n === 4) renderSchedulePreview();
+}
+
+function addExam() {
+  const name = document.getElementById('new-exam-name').value.trim();
+  const date = document.getElementById('new-exam-date').value;
+  const hours = parseInt(document.getElementById('new-exam-hours').value) || 6;
+  if (!name || !date) { alert('Please enter exam name and target date.'); return; }
+  const exam = { id: Date.now(), name, date, hoursPerDay: hours, color: EXAM_COLORS[state.exams.length % EXAM_COLORS.length] };
+  state.exams.push(exam);
+  save();
+  renderExamListSetup();
+  document.getElementById('new-exam-name').value = '';
+  document.getElementById('new-exam-date').value = '';
+}
+
+function removeExam(id) {
+  state.exams = state.exams.filter(e => e.id !== id);
+  state.topics = state.topics.filter(t => t.examId !== id);
+  save();
+  renderExamListSetup();
+}
+
+function renderExamListSetup() {
+  const el = document.getElementById('exam-list-setup');
+  if (!state.exams.length) { el.innerHTML = '<div style="color:var(--text2);font-size:13px;margin-bottom:8px">No exams added yet.</div>'; return; }
+  el.innerHTML = state.exams.map(e => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border-radius:var(--radius);margin-bottom:6px">
+      <span style="width:10px;height:10px;border-radius:50%;background:${e.color};flex-shrink:0"></span>
+      <div style="flex:1"><div style="font-weight:600;font-size:13px">${e.name}</div><div style="font-size:11px;color:var(--text2)">${e.date} · ${e.hoursPerDay}h/day</div></div>
+      <button class="btn sm" onclick="removeExam(${e.id})" style="color:var(--red);border-color:var(--red-bg)">Remove</button>
+    </div>`).join('');
+}
+
+function populateExamSelect() {
+  const sel = document.getElementById('upload-exam-select');
+  if (!sel) return;
+  sel.innerHTML = state.exams.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+  refreshUnitSuggestions();
+}
+
+// ─── MANUAL SYLLABUS ENTRY ────────────────────────────────────────────────────
+function getSelectedExamId() {
+  const sel = document.getElementById('upload-exam-select');
+  return sel ? parseInt(sel.value) : null;
+}
+
+function refreshUnitSuggestions() {
+  const examId = getSelectedExamId();
+  const units = [...new Set(state.topics.filter(t => t.examId === examId).map(t => t.unit))];
+  const dl = document.getElementById('unit-suggestions');
+  if (dl) dl.innerHTML = units.map(u => `<option value="${u}">`).join('');
+}
+
+function makeTopic(examId, unit, name) {
+  const exam = state.exams.find(e => e.id === examId);
+  return {
+    id: examId + '_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+    examId,
+    examName: exam?.name || 'Exam',
+    unit: unit.trim() || 'General',
+    name: name.trim(),
+    scheduledDate: null,
+    level: 0,
+    readDate: null, rev1Date: null, rev2Date: null,
+    doneToday: false
+  };
+}
+
+function addTopicManual() {
+  const examId = getSelectedExamId();
+  if (!examId) { alert('Select an exam first.'); return; }
+  const unit = document.getElementById('new-unit').value.trim();
+  const name = document.getElementById('new-topic-name').value.trim();
+  if (!name) { alert('Enter a topic name.'); return; }
+
+  state.topics.push(makeTopic(examId, unit || 'General', name));
+  save();
+  document.getElementById('new-topic-name').value = '';
+  refreshUnitSuggestions();
+  renderManualTopicList();
+  // Flash confirmation
+  const msg = document.getElementById('add-topic-msg');
+  msg.style.display = 'inline';
+  setTimeout(() => msg.style.display = 'none', 1200);
+}
+
+function parseBulkPaste() {
+  const examId = getSelectedExamId();
+  if (!examId) { alert('Select an exam first.'); return; }
+  const text = document.getElementById('bulk-paste').value.trim();
+  if (!text) { alert('Paste some text first.'); return; }
+
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  let currentUnit = 'General';
+  let added = 0;
+
+  lines.forEach(line => {
+    // Detect unit header: ends with ":" or starts with "Unit" / "Section" / "Paper"
+    const isUnit = /^(unit|section|paper|chapter|part|module)\b/i.test(line) || (line.endsWith(':') && line.length < 80 && !line.includes(','));
+    if (isUnit) {
+      currentUnit = line.replace(/:$/, '').trim();
+    } else {
+      // Could be comma-separated topics on one line
+      const parts = line.split(/[,;]/).map(p => p.trim()).filter(p => p.length > 2);
+      parts.forEach(p => { state.topics.push(makeTopic(examId, currentUnit, p)); added++; });
+    }
+  });
+
+  save();
+  document.getElementById('bulk-paste').value = '';
+  refreshUnitSuggestions();
+  renderManualTopicList();
+  const msg = document.getElementById('bulk-msg');
+  msg.textContent = `✓ ${added} topics added!`;
+  msg.style.display = 'inline';
+  setTimeout(() => msg.style.display = 'none', 2000);
+}
+
+function deleteTopicManual(topicId) {
+  state.topics = state.topics.filter(t => t.id !== topicId);
+  save();
+  renderManualTopicList();
+}
+
+function renderManualTopicList() {
+  const el = document.getElementById('manual-topic-list');
+  if (!el) return;
+  const examId = getSelectedExamId();
+  const topics = state.topics.filter(t => t.examId === examId);
+
+  if (!topics.length) {
+    el.innerHTML = '<div style="color:var(--text2);font-size:13px;padding:8px 0">No topics added yet for this exam.</div>';
+    return;
+  }
+
+  // Group by unit
+  const units = {};
+  topics.forEach(t => { if (!units[t.unit]) units[t.unit] = []; units[t.unit].push(t); });
+
+  el.innerHTML = `<div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px">${topics.length} topics added</div>` +
+    Object.entries(units).map(([unit, ts]) => `
+      <div style="margin-bottom:12px">
+        <div style="font-size:11px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between">
+          <span>${unit}</span><span style="color:var(--text3);font-weight:400">${ts.length} topics</span>
+        </div>
+        ${ts.map(t => `
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg3);border-radius:7px;margin-bottom:3px">
+            <span style="flex:1;font-size:12px">${t.name}</span>
+            <button onclick="deleteTopicManual('${t.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:0 2px" title="Delete">×</button>
+          </div>`).join('')}
+      </div>`).join('');
+}
+
+function renderParsedPreview() {
+  const el = document.getElementById('parsed-topics-preview');
+  const allTopics = state.topics;
+  if (!allTopics.length) { el.innerHTML = '<div style="color:var(--text2);font-size:13px">No topics added yet. Go back to Step 2 to add topics.</div>'; return; }
+
+  // Group by exam → unit
+  const byExam = {};
+  allTopics.forEach(t => {
+    if (!byExam[t.examName]) byExam[t.examName] = {};
+    if (!byExam[t.examName][t.unit]) byExam[t.examName][t.unit] = [];
+    byExam[t.examName][t.unit].push(t);
+  });
+
+  const exam = state.exams.find(e => e.id === getSelectedExamId());
+  const color = exam?.color || 'var(--accent2)';
+
+  el.innerHTML = `<div style="font-size:13px;color:var(--text2);margin-bottom:12px">${allTopics.length} total topics across ${state.exams.length} exam(s)</div>` +
+    Object.entries(byExam).map(([examName, units]) => `
+      <div style="margin-bottom:16px">
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px">📘 ${examName}</div>
+        ${Object.entries(units).map(([unit, ts]) => `
+          <div style="margin-bottom:10px">
+            <div style="font-size:11px;font-weight:600;color:var(--accent2);margin-bottom:5px">${unit} (${ts.length})</div>
+            ${ts.map(t => `<div style="font-size:12px;color:var(--text2);padding:3px 0 3px 12px;border-left:2px solid var(--border2)">${t.name}</div>`).join('')}
+          </div>`).join('')}
+      </div>`).join('');
+}
+
+function renderSchedulePreview() {
+  const el = document.getElementById('schedule-preview');
+  const totalTopics = state.topics.length;
+  if (!totalTopics) { el.innerHTML = '<div style="color:var(--text2);font-size:13px">Add syllabus topics first (Step 2).</div>'; return; }
+  el.innerHTML = `<div style="color:var(--text2);font-size:13px;margin-bottom:12px">${totalTopics} topics loaded across ${state.exams.length} exam(s). Ready to generate your schedule.</div>`;
+}
+
+// ─── SCHEDULE GENERATION ──────────────────────────────────────────────────────
+function generateSchedule() {
+  if (!state.topics.length) { alert('Please add syllabus topics first (Step 2).'); return; }
+  if (!state.exams.length) { alert('Please add at least one exam.'); return; }
+
+  const btn = document.getElementById('gen-btn');
+  btn.textContent = '⚡ Generating...';
+  btn.disabled = true;
+
+  setTimeout(() => {
+    // For each exam, distribute topics across available days
+    state.schedule = [];
+    const today = new Date(); today.setHours(0,0,0,0);
+
+    state.exams.forEach(exam => {
+      const examTopics = state.topics.filter(t => t.examId === exam.id);
+      if (!examTopics.length) return;
+
+      const targetDate = new Date(exam.date); targetDate.setHours(0,0,0,0);
+      const daysAvail = Math.max(1, Math.floor((targetDate - today) / 86400000));
+      // Rough: 6 topics per study hour, distribute evenly
+      const topicsPerDay = Math.ceil(examTopics.length / daysAvail);
+      const effectiveTPD = Math.max(1, Math.min(topicsPerDay, exam.hoursPerDay * 4));
+
+      examTopics.forEach((topic, i) => {
+        const dayOffset = Math.floor(i / effectiveTPD);
+        const d = new Date(today); d.setDate(d.getDate() + dayOffset);
+        topic.scheduledDate = d.toISOString().split('T')[0];
+      });
+    });
+
+    save();
+    btn.textContent = '✓ Schedule generated!';
+    btn.disabled = false;
+    setTimeout(() => { btn.textContent = '⚡ Generate Schedule'; }, 2000);
+    renderSchedulePreview();
+    renderDashboard();
+
+    // Show success
+    const el = document.getElementById('schedule-preview');
+    el.innerHTML = `<div class="badge green" style="margin-bottom:10px">✓ Schedule created!</div><div style="font-size:13px;color:var(--text2)">Head to Dashboard or Daily Schedule to see your plan.</div>`;
+  }, 300);
+}
+
+// ─── RENDER DASHBOARD ─────────────────────────────────────────────────────────
+function renderDashboard() {
+  const today = new Date().toDateString();
+  const todayISO = new Date().toISOString().split('T')[0];
+
+  // Greeting
+  const hour = new Date().getHours();
+  const greet = hour < 12 ? 'Good morning! ☀️' : hour < 17 ? 'Good afternoon! 📚' : 'Good evening! 🌙';
+  document.getElementById('dash-greeting').textContent = greet;
+
+  // Today's date
+  document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-IN', { weekday:'long', day:'numeric', month:'long' });
+
+  // Stats
+  const allTopics = state.topics.length;
+  const doneTops = state.topics.filter(t => t.level >= 3).length;
+  const pct = allTopics ? Math.round(doneTops/allTopics*100) : 0;
+  document.getElementById('stat-done').textContent = pct + '%';
+  document.getElementById('stat-streak').textContent = (state.streak||0) + '🔥';
+
+  // Days to nearest exam
+  if (state.exams.length) {
+    const nearest = state.exams.reduce((a,b) => new Date(a.date) < new Date(b.date) ? a : b);
+    const days = Math.ceil((new Date(nearest.date) - new Date()) / 86400000);
+    document.getElementById('stat-days').textContent = Math.max(0, days);
+  }
+
+  // Today's topics
+  const todayTopics = state.topics.filter(t => t.scheduledDate === todayISO);
+  document.getElementById('stat-today').textContent = todayTopics.length;
+
+  // Exam badges
+  const badges = document.getElementById('exam-badges');
+  badges.innerHTML = state.exams.map(e => {
+    const days = Math.ceil((new Date(e.date) - new Date()) / 86400000);
+    return `<div style="background:${e.color}22;border:1px solid ${e.color}44;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;color:${e.color}">${e.name}<span style="font-weight:400;opacity:.7;margin-left:6px">${Math.max(0,days)}d</span></div>`;
+  }).join('');
+
+  // Exam progress cards
+  const pCards = document.getElementById('exam-progress-cards');
+  pCards.innerHTML = state.exams.map(e => {
+    const et = state.topics.filter(t => t.examId === e.id);
+    const ed = et.filter(t => t.level >= 1).length;
+    const pct = et.length ? Math.round(ed/et.length*100) : 0;
+    const days = Math.ceil((new Date(e.date) - new Date()) / 86400000);
+    return `<div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-weight:600;font-size:14px">${e.name}</div>
+        <span class="badge ${days < 7 ? 'red' : days < 30 ? 'amber' : 'green'}">${Math.max(0,days)} days left</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:6px">
+        <span>${ed}/${et.length} topics read</span><span>${pct}%</span>
+      </div>
+      <div class="prog-wrap"><div class="prog-fill" style="width:${pct}%;background:${e.color}"></div></div>
+    </div>`;
+  }).join('');
+
+  // Today's plan
+  const todayList = document.getElementById('today-list');
+  if (!todayTopics.length) {
+    todayList.innerHTML = '<div style="color:var(--text2);font-size:13px;padding:8px 0">No topics scheduled for today.' + (state.topics.length ? '' : ' <button class="btn sm" onclick="showSection(\'setup\')">Setup →</button>') + '</div>';
+  } else {
+    todayList.innerHTML = todayTopics.map(t => `
+      <div class="topic-row" id="tr-${t.id}">
+        <div style="flex:1">
+          <div class="topic-name">${t.name}</div>
+          <div class="topic-sub">${t.examName} · ${t.unit}</div>
+        </div>
+        <div class="level-dots">
+          ${[0,1,2].map(l => `<div class="dot ${t.level > l ? 'done' : ''}" data-level="${l}" onclick="markLevel('${t.id}',${l+1})" title="${LEVEL_LABELS[l]}"></div>`).join('')}
+        </div>
+        <span class="tag ${LEVEL_TAGS[Math.min(t.level,2)]}">${LEVEL_LABELS[Math.min(t.level,2)]}</span>
+      </div>`).join('');
+  }
+
+  // Due revisions on dashboard
+  const revDue = getRevisionsDue(todayISO);
+  const dashRev = document.getElementById('dash-revisions-section');
+  const dashRevList = document.getElementById('dash-revision-list');
+  if (revDue.due.length) {
+    dashRev.style.display = 'block';
+    dashRevList.innerHTML = revDue.due.slice(0,5).map(r => revAlertHTML(r,'due')).join('');
+  } else dashRev.style.display = 'none';
+
+  // Revision notif dot
+  const totalDue = revDue.due.length + revDue.overdue.length;
+  document.getElementById('rev-dot').style.display = totalDue ? 'block' : 'none';
+}
+
+// ─── MARK LEVEL ──────────────────────────────────────────────────────────────
+function markLevel(topicId, level) {
+  const t = state.topics.find(t => t.id == topicId);
+  if (!t) return;
+  const todayISO = new Date().toISOString().split('T')[0];
+  if (level === 1 && !t.readDate) t.readDate = todayISO;
+  if (level === 2 && !t.rev1Date) t.rev1Date = todayISO;
+  if (level === 3 && !t.rev2Date) t.rev2Date = todayISO;
+  t.level = Math.max(t.level, level);
+  save();
+  renderDashboard();
+  renderRevisions();
+}
+
+// ─── REVISIONS ───────────────────────────────────────────────────────────────
+function getRevisionsDue(todayISO) {
+  const today = new Date(todayISO);
+  const due = [], overdue = [], upcoming = [];
+
+  state.topics.forEach(t => {
+    if (!t.readDate) return;
+
+    const readDate = new Date(t.readDate);
+    const checks = [
+      { label: 'Rev 1 (24h)', daysAfter: 1, needed: t.level < 2, doneDate: t.rev1Date },
+      { label: 'Rev 2 (3 days)', daysAfter: 3, needed: t.level < 3 && t.level >= 2, doneDate: t.rev2Date },
+      { label: 'Rev 3 (7 days)', daysAfter: 7, needed: t.level < 3 && t.rev1Date, doneDate: t.rev2Date }
+    ];
+
+    checks.forEach(c => {
+      if (!c.needed || c.doneDate) return;
+      const dueDate = new Date(readDate); dueDate.setDate(dueDate.getDate() + c.daysAfter);
+      const dueISO = dueDate.toISOString().split('T')[0];
+      const diff = Math.round((dueDate - today) / 86400000);
+
+      const item = { topic: t, label: c.label, dueDate: dueISO, diff };
+      if (diff < 0) overdue.push(item);
+      else if (diff === 0) due.push(item);
+      else if (diff <= 7) upcoming.push(item);
+    });
+  });
+
+  return { due, overdue, upcoming };
+}
+
+function revAlertHTML(r, type) {
+  const exam = state.exams.find(e => e.id === r.topic.examId);
+  const color = exam?.color || 'var(--accent2)';
+  const diffText = r.diff < 0 ? `${Math.abs(r.diff)} day(s) overdue` : r.diff === 0 ? 'Due today' : `In ${r.diff} day(s)`;
+  return `<div class="alert-row ${type}">
+    <div style="width:4px;height:40px;border-radius:2px;background:${color};flex-shrink:0"></div>
+    <div class="alert-info">
+      <div class="alert-topic">${r.topic.name}</div>
+      <div class="alert-meta">${r.topic.examName} · ${r.label} · ${diffText}</div>
+    </div>
+    <button class="btn sm" onclick="markRevisionDone('${r.topic.id}','${r.label}')">Mark done</button>
+  </div>`;
+}
+
+function markRevisionDone(topicId, label) {
+  const t = state.topics.find(t => t.id == topicId);
+  if (!t) return;
+  const todayISO = new Date().toISOString().split('T')[0];
+  if (label.includes('24h') || label.includes('Rev 1')) { t.rev1Date = todayISO; t.level = Math.max(t.level, 2); }
+  else { t.rev2Date = todayISO; t.level = 3; }
+  save();
+  renderRevisions();
+  renderDashboard();
+}
+
+function renderRevisions() {
+  const todayISO = new Date().toISOString().split('T')[0];
+  const { due, overdue, upcoming } = getRevisionsDue(todayISO);
+
+  const overdueEl = document.getElementById('rev-overdue-section');
+  const overdueList = document.getElementById('rev-overdue-list');
+  overdueEl.style.display = overdue.length ? 'block' : 'none';
+  overdueList.innerHTML = overdue.map(r => revAlertHTML(r, 'overdue')).join('');
+
+  const todayEl = document.getElementById('rev-today-section');
+  const todayList = document.getElementById('rev-today-list');
+  todayEl.style.display = due.length ? 'block' : 'none';
+  todayList.innerHTML = due.map(r => revAlertHTML(r, 'due')).join('');
+
+  const upcomingList = document.getElementById('rev-upcoming-list');
+  upcomingList.innerHTML = upcoming.length
+    ? upcoming.map(r => revAlertHTML(r, 'upcoming')).join('')
+    : '<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">All clear!</div><div class="empty-sub">No upcoming revisions this week.</div></div>';
+
+  const total = due.length + overdue.length;
+  document.getElementById('rev-dot').style.display = total ? 'block' : 'none';
+}
+
+// ─── TOPICS VIEW ─────────────────────────────────────────────────────────────
+function renderTopics() {
+  // Populate filter
+  const sel = document.getElementById('filter-exam');
+  const currentVal = sel.value;
+  sel.innerHTML = '<option value="">All exams</option>' + state.exams.map(e => `<option value="${e.id}" ${currentVal==e.id?'selected':''}>${e.name}</option>`).join('');
+
+  const examFilter = sel.value;
+  const statusFilter = document.getElementById('filter-status').value;
+
+  let topics = state.topics;
+  if (examFilter) topics = topics.filter(t => t.examId == examFilter);
+  if (statusFilter !== '') topics = topics.filter(t => t.level === parseInt(statusFilter));
+
+  const container = document.getElementById('topic-list-container');
+  if (!topics.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">No topics match</div><div class="empty-sub">Try adjusting filters or upload a syllabus.</div></div>';
+    return;
+  }
+
+  // Group by exam + unit
+  const groups = {};
+  topics.forEach(t => {
+    const key = t.examName + '||' + t.unit;
+    if (!groups[key]) groups[key] = { exam: t.examName, unit: t.unit, topics: [], color: (state.exams.find(e=>e.id===t.examId)||{}).color||'var(--accent)' };
+    groups[key].topics.push(t);
+  });
+
+  container.innerHTML = Object.values(groups).map(g => `
+    <div style="margin-bottom:18px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="width:8px;height:8px;border-radius:50%;background:${g.color}"></span>
+        <span style="font-size:12px;font-weight:600;color:var(--text2)">${g.exam} · ${g.unit}</span>
+      </div>
+      ${g.topics.map(t => `
+        <div class="topic-row">
+          <div style="flex:1">
+            <div class="topic-name">${t.name}</div>
+            ${t.readDate ? `<div class="topic-sub">Read: ${t.readDate}${t.rev1Date ? ' · Rev1: '+t.rev1Date : ''}${t.rev2Date ? ' · Rev2: '+t.rev2Date : ''}</div>` : ''}
+          </div>
+          <div class="level-dots">
+            ${[0,1,2].map(l => `<div class="dot ${t.level > l ? 'done' : ''}" data-level="${l}" onclick="markLevel('${t.id}',${l+1})" title="${LEVEL_LABELS[l]}"></div>`).join('')}
+          </div>
+          <span class="tag ${t.level >= 3 ? 'rev2' : t.level >= 2 ? 'rev1' : t.level >= 1 ? 'read' : 'read'}" style="${t.level === 0 ? 'opacity:.4' : ''}">${t.level >= 3 ? 'Done' : LEVEL_LABELS[Math.min(t.level,2)]}</span>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+// ─── SCHEDULE VIEW ────────────────────────────────────────────────────────────
+function renderScheduleView() {
+  const el = document.getElementById('schedule-list');
+  if (!state.topics.some(t => t.scheduledDate)) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div><div class="empty-title">No schedule generated</div><div class="empty-sub">Complete setup to generate your plan.</div></div>';
+    return;
+  }
+
+  // Group by date
+  const byDate = {};
+  state.topics.forEach(t => {
+    if (!t.scheduledDate) return;
+    if (!byDate[t.scheduledDate]) byDate[t.scheduledDate] = [];
+    byDate[t.scheduledDate].push(t);
+  });
+
+  const sorted = Object.keys(byDate).sort();
+  const todayISO = new Date().toISOString().split('T')[0];
+
+  el.innerHTML = sorted.map(d => {
+    const ts = byDate[d];
+    const isPast = d < todayISO;
+    const isToday = d === todayISO;
+    const done = ts.filter(t => t.level >= 1).length;
+    return `<div class="day-row" style="${isToday ? 'color:var(--accent2)' : isPast ? 'opacity:.5' : ''}">
+      <div class="day-label">${isToday ? '📍 Today' : d.slice(5).replace('-','/')}</div>
+      <div class="day-topics" style="font-size:12px;color:${isToday?'var(--text)':'var(--text2)'}">${ts.map(t=>`<span title="${t.unit}">${t.name.length>40?t.name.slice(0,40)+'…':t.name}</span>`).join(' · ')}</div>
+      <div class="day-load">${done}/${ts.length} done</div>
+    </div>`;
+  }).join('');
+}
+
+// ─── SESSION LOG ─────────────────────────────────────────────────────────────
+function updateSessionLog() {
+  const sessions = state.sessions || [];
+  const totalSec = sessions.reduce((a, s) => a + (s.duration || 0), 0);
+  const avg = sessions.length ? Math.round(totalSec / sessions.length / 60) : 0;
+
+  document.getElementById('log-total-time').textContent = Math.floor(totalSec/3600) + 'h ' + Math.floor((totalSec%3600)/60) + 'm';
+  document.getElementById('log-sessions').textContent = sessions.length;
+  document.getElementById('log-avg').textContent = avg + 'm';
+
+  const el = document.getElementById('session-log-list');
+  if (!sessions.length) { el.innerHTML = '<div style="color:var(--text2);font-size:13px;padding:12px 0">No sessions yet. Start the timer!</div>'; return; }
+  el.innerHTML = [...sessions].reverse().map(s => {
+    const start = new Date(s.start);
+    const dur = Math.floor(s.duration/60);
+    return `<div class="session-row"><span>${start.toLocaleDateString('en-IN')} ${start.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</span><span class="badge accent">${dur} min</span></div>`;
+  }).join('');
+}
+
+function clearLog() {
+  if (confirm('Clear all session logs?')) { state.sessions = []; save(); updateSessionLog(); }
+}
+
+// ─── LOADING ──────────────────────────────────────────────────────────────────
+function showLoading(text) {
+  document.getElementById('loading-text').textContent = text;
+  document.getElementById('loading-overlay').style.display = 'flex';
+}
+function hideLoading() { document.getElementById('loading-overlay').style.display = 'none'; }
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+load();
+renderDashboard();
+renderExamListSetup();
+renderRevisions();
+
+// Restore timer accum from today's sessions
+const todayISO2 = new Date().toISOString().split('T')[0];
+timerAccum = (state.sessions || []).filter(s => s.start?.startsWith(todayISO2)).reduce((a,s)=>a+(s.duration||0),0);
+updateTimer();
+</script>
+</body>
+</html>
